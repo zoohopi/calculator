@@ -41,6 +41,27 @@ export const appendNumber = (num) => {
 
 
 
+    if (justCalculated) expression = "";
+
+    if (num === ".") {
+        const segments = expression.split(/[+\-*\/]/);
+        const current  = segments[segments.length - 1];
+
+        if (current.includes(".")) {
+            justCalculated = false;
+            updateDisplay();
+            return;
+        }
+
+        if (current === "") expression += "0";
+    } else if (expression === "0") {
+        expression = num;
+        justCalculated = false;
+        updateDisplay();
+        return;
+    }
+
+    expression += num;
     justCalculated = false;
     updateDisplay();
 };
@@ -71,6 +92,21 @@ export const appendOperator = (op) => {
     // 힌트: 마지막 문자 제거    → expression.slice(0, -1)
 
 
+
+    if (expression === "") {
+        justCalculated = false;
+        updateDisplay();
+        return;
+    }
+
+    const last = expression[expression.length - 1];
+    const operators = ["+", "-", "*", "/"];
+
+    if (operators.includes(last)) {
+        expression = expression.slice(0, -1) + op;
+    } else {
+        expression += op;
+    }
 
     justCalculated = false;
     updateDisplay();
@@ -116,8 +152,32 @@ export const calculate = () => {
     // 규칙 4. 반환값: { expression: 수식, result: 결과값 문자열 }
     //         (main.js에서 기록 저장에 사용합니다)
 
+    if (expression === "") return null;
 
+    const last = expression[expression.length - 1];
+    if (["+", "-", "*", "/"].includes(last)) return null;
 
+    if (/\/0(?![.\d])/.test(expression)) {
+        subDisplay.textContent = "0으로 나눌 수 없습니다";
+        return null;
+    }
+
+    try {
+        const raw    = Function('"use strict"; return (' + expression + ')')();
+        const result = parseFloat(raw.toFixed(10)).toString();
+        const expr   = expression;
+
+        mainDisplay.textContent    = result;
+        mainDisplay.style.fontSize = result.length > 10 ? "1.8rem" : "2.6rem";
+        subDisplay.textContent     = expr + " =";
+        justCalculated             = true;
+        expression                 = result;
+
+        return { expression: expr, result };
+    } catch (e) {
+        subDisplay.textContent = "올바른 수식이 아닙니다";
+        return null;
+    }
 };
 
 // ── 과제 4: 마지막 문자 삭제 ────────────────────────────────
@@ -133,8 +193,12 @@ export const deleteLast = () => {
     // 규칙 2. 그렇지 않으면 expression의 마지막 글자 하나만 제거
     //         (힌트: expression.slice(0, -1))
 
+    if (justCalculated) {
+        clearAll();
+        return;
+    }
 
-
+    expression = expression.slice(0, -1);
     updateDisplay();
 };
 

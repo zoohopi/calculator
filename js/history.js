@@ -20,8 +20,9 @@ const MAX_COUNT   = 20;
 export const loadHistory = () => {
     // 💡 [과제 5] 여기에 코드를 작성하세요.
 
-
-
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw === null) return [];
+    return JSON.parse(raw);
 };
 
 // ── 과제 6: 기록 저장 ────────────────────────────────────────
@@ -37,8 +38,8 @@ export const loadHistory = () => {
 export const saveHistory = (history) => {
     // 💡 [과제 6] 여기에 코드를 작성하세요.
 
-
-
+    const limitedHistory = history.slice(0, MAX_COUNT);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(limitedHistory));
 };
 
 // ── 과제 7: 기록 항목 추가 ───────────────────────────────────
@@ -61,8 +62,16 @@ export const saveHistory = (history) => {
 export const addHistory = (expression, result) => {
     // 💡 [과제 7] 여기에 코드를 작성하세요.
 
+    const history = loadHistory();
+    const item = {
+        expression,
+        result,
+        date: new Date().toLocaleString("ko-KR")
+    };
+    const updated = [item, ...history];
 
-
+    saveHistory(updated);
+    return updated;
 };
 
 // ── 도전 2: 기록 개별 삭제 (선택 과제) ──────────────────────
